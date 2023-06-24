@@ -52,7 +52,7 @@ const generateSystemPrompt = (field) => {
   };
 };
 
-app.post("/chatPrompt",auth, async (req, res) => {
+app.post("/chatPrompt", async (req, res) => {
   try {
     const { field, prompt } = req.body;
 
