@@ -63,4 +63,156 @@ try {
 }
 })
 
+
+// update by id
+
+historyRoute.patch("/update/:id",async(req,res)=>{
+  try {
+    const {id} = req.params
+    const payload = req.body
+    const user = await UserModel.find({_id:req.body.userID});
+  if(!user){
+      return res.status(400).send({ msg: "User not found" });
+  }
+    const updatedinterview = await HistoryModel.findOneAndUpdate({_id:id},payload, { new: true })
+    res.status(200).send({"msg":"Interview Updated" , updatedinterview})
+  } catch (error) {
+    return res.status(400).send({ msg: error.message });
+
+  }
+})
+
+const { ObjectId } = require('mongoose').Types;
+
+historyRoute.get('/average/allscore', async (req, res) => {
+  
+  try {
+    const user = await UserModel.findOne({ _id: req.body.userID });
+    if (!user) {
+      return res.status(400).send({ msg: 'User not found' });
+    }
+
+    const averageScore = await HistoryModel.aggregate([
+      {
+        $match: {
+          userID: new ObjectId(req.body.userID)
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          averageScore: { $avg: '$score' }
+        }
+      }
+    ]);
+
+    if (averageScore.length === 0) {
+      // No history or averageScore not found
+      return res.status(404).send({ msg: 'No history found' });
+    }
+
+    res.status(200).send({ msg: 'Average score', averageScore: averageScore[0].averageScore });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).send({ msg: error.message });
+  }
+});
+
+
+// historyRoute.get('/average/field', async (req, res) => {
+//   console.log(req.body);
+//   try {
+//     const user = await UserModel.findOne({ _id: req.body.userID });
+//     if (!user) {
+//       return res.status(400).send({ msg: 'User not found' });
+//     }
+
+//     const averageScores = await HistoryModel.aggregate([
+//       {
+//         $match: {
+//           userID: new ObjectId(req.body.userID)
+//         }
+//       },
+//       {
+//         $group: {
+//           _id: '$field',
+//           averageScore: { $avg: '$score' }
+//         }
+//       }
+//     ]);
+
+//     if (averageScores.length === 0) {
+//       // No history or averageScores not found
+//       return res.status(404).send({ msg: 'No history found' });
+//     }
+
+//     res.status(200).send({ msg: 'Average scores', averageScores });
+//   } catch (error) {
+//     console.log(error.message);
+//     return res.status(400).send({ msg: error.message });
+//   }
+// });
+
+
+historyRoute.get('/average/field', async (req, res) => {
+  console.log(req.body);
+  try {
+    const user = await UserModel.findOne({ _id: req.body.userID });
+    if (!user) {
+      return res.status(400).send({ msg: 'User not found' });
+    }
+
+    const averageScores = await HistoryModel.aggregate([
+      {
+        $match: {
+          userID: new ObjectId(req.body.userID)
+        }
+      },
+      {
+        $group: {
+          _id: '$field',
+          averageScore: { $avg: '$score' }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          field: '$_id',
+          averageScore: 1
+        }
+      }
+    ]);
+
+    if (averageScores.length === 0) {
+      // No history or averageScores not found
+      return res.status(404).send({ msg: 'No history found' });
+    }
+
+    const formattedScores = averageScores.reduce((result, { field, averageScore }) => {
+      result[field] = averageScore;
+      return result;
+    }, {});
+
+    res.status(200).send({ msg: 'Average scores By Field', ...formattedScores });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).send({ msg: error.message });
+  }
+});
+
+historyRoute.delete("/delete/:id",async(req,res)=>{
+  try {
+    const {id} = req.params
+    const user = await UserModel.find({_id:req.body.userID});
+  if(!user){
+      return res.status(400).send({ msg: "User not found" });
+  }
+    const deletedinterview = await HistoryModel.findOneAndDelete({_id:id})
+    res.status(200).send({"msg":"Interview Deleted"})
+  } catch (error) {
+    return res.status(400).send({ msg: error.message });
+
+  }
+})
+
 module.exports={historyRoute}

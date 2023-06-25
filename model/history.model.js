@@ -14,6 +14,8 @@ const histroyschema = mongoose.Schema({
   title:"String",
   type:"String",
   field:"String",
+  feedback:"String",
+  score:"Number",
   createdDate: {
     type: Date,
     default: Date.now,
