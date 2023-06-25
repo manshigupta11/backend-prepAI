@@ -34,16 +34,26 @@ historyRoute.get("/feedback/:id", async (req, res) => {
     // Get the last conversation history entry
     const feedbackEntry = history.conversationHistory[history.conversationHistory.length - 1];
    console.log(feedbackEntry.content)
+   const score = getFirstNumber(feedbackEntry.content)
     // Extract feedback and score from the content
    let text = feedbackEntry.content
-    res.json({ text });
+    res.json({ text,score });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "An error occurred" });
   }
 });
 
-
+function getFirstNumber(sentence) {
+  const regex = /\d+/; // Regular expression to match one or more digits
+  const match = sentence.match(regex);
+  
+  if (match) {
+    return parseInt(match[0], 10); // Parse the matched number as an integer
+  } else {
+    return null; // Return null if no number is found
+  }
+}
 
 historyRoute.get("/:id",async(req,res)=>{
 try {
